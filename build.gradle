@@ -13,8 +13,7 @@ allprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        maven { url = "https://maven.photonvision.org/repository/internal/" }
-        maven { url = "https://maven.photonvision.org/repository/snapshots/" }
+        maven { url = "https://maven.photonvision.org/repository/bleedingedge/" }
     }
     wpilibRepositories.addAllReleaseRepositories(it)
     wpilibRepositories.addAllDevelopmentRepositories(it)
