@@ -176,6 +176,9 @@ jobs:
     container: ${{ matrix.container }}
     name: "Photonlib - Build Docker - ${{ matrix.artifact-name }}"
     steps:
+      - name: Install SSH
+        run: |
+          apt update && apt install --yes ssh
       - uses: actions/checkout@v4
         with:
           ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
