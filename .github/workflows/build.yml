@@ -106,8 +106,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: 'PhotonVision/photonvision-docs.git'
-          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
+          repository: 'PhotonVision/photonvision-docs'
           ref: master
       - uses: actions/setup-python@v5
         with:
