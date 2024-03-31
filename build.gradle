@@ -1,7 +1,6 @@
 import edu.wpi.first.toolchain.*
 
 plugins {
-    id "com.diffplug.spotless" version "6.24.0"
     id "edu.wpi.first.NativeUtils" version "2024.6.1" apply false
     id "edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin" version "2020.2"
     id "edu.wpi.first.GradleRIO" version "2024.3.2"
@@ -13,6 +12,7 @@ allprojects {
     repositories {
         mavenCentral()
         mavenLocal()
+        maven { url = "https://maven.photonvision.org/repository/bleedingedge/" }
         maven { url = "https://maven.photonvision.org/repository/internal/" }
         maven { url = "https://maven.photonvision.org/repository/snapshots/" }
     }
@@ -52,50 +52,50 @@ ext {
     println("Using OpenCV: " + openCVversion)
 }
 
-spotless {
-    java {
-        target fileTree('.') {
-            include '**/*.java'
-            exclude '**/build/**', '**/build-*/**', "photon-core\\src\\main\\java\\org\\photonvision\\PhotonVersion.java", "photon-lib\\src\\main\\java\\org\\photonvision\\PhotonVersion.java"
-        }
-        toggleOffOn()
-        googleJavaFormat()
-        indentWithTabs(2)
-        indentWithSpaces(4)
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-    groovyGradle {
-        target fileTree('.') {
-            include '**/*.gradle'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        greclipse()
-        indentWithSpaces(4)
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-    format 'xml', {
-        target fileTree('.') {
-            include '**/*.xml'
-            exclude '**/build/**', '**/build-*/**', "**/.idea/**"
-        }
-        eclipseWtp('xml')
-        trimTrailingWhitespace()
-        indentWithSpaces(2)
-        endWithNewline()
-    }
-    format 'misc', {
-        target fileTree('.') {
-            include '**/*.md', '**/.gitignore'
-            exclude '**/build/**', '**/build-*/**'
-        }
-        trimTrailingWhitespace()
-        indentWithSpaces(2)
-        endWithNewline()
-    }
-}
+// spotless {
+//     java {
+//         target fileTree('.') {
+//             include '**/*.java'
+//             exclude '**/build/**', '**/build-*/**', "photon-core\\src\\main\\java\\org\\photonvision\\PhotonVersion.java", "photon-lib\\src\\main\\java\\org\\photonvision\\PhotonVersion.java"
+//         }
+//         toggleOffOn()
+//         googleJavaFormat()
+//         indentWithTabs(2)
+//         indentWithSpaces(4)
+//         removeUnusedImports()
+//         trimTrailingWhitespace()
+//         endWithNewline()
+//     }
+//     groovyGradle {
+//         target fileTree('.') {
+//             include '**/*.gradle'
+//             exclude '**/build/**', '**/build-*/**'
+//         }
+//         greclipse()
+//         indentWithSpaces(4)
+//         trimTrailingWhitespace()
+//         endWithNewline()
+//     }
+//     format 'xml', {
+//         target fileTree('.') {
+//             include '**/*.xml'
+//             exclude '**/build/**', '**/build-*/**', "**/.idea/**"
+//         }
+//         eclipseWtp('xml')
+//         trimTrailingWhitespace()
+//         indentWithSpaces(2)
+//         endWithNewline()
+//     }
+//     format 'misc', {
+//         target fileTree('.') {
+//             include '**/*.md', '**/.gitignore'
+//             exclude '**/build/**', '**/build-*/**'
+//         }
+//         trimTrailingWhitespace()
+//         indentWithSpaces(2)
+//         endWithNewline()
+//     }
+// }
 
 wrapper {
     gradleVersion '8.4'

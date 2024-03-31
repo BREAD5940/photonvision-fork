@@ -22,6 +22,7 @@ import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cscore.VideoException;
 import edu.wpi.first.cscore.VideoMode;
+import edu.wpi.first.cscore.VideoProperty;
 import edu.wpi.first.cscore.VideoProperty.Kind;
 import edu.wpi.first.util.PixelFormat;
 import java.util.*;
@@ -68,7 +69,7 @@ public class USBCameraSource extends VisionSource {
         if (getCameraConfiguration().cameraQuirks.hasQuirks()) {
             logger.info("Quirky camera detected: " + getCameraConfiguration().cameraQuirks.baseName);
         }
-
+        
         if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.CompletelyBroken)) {
             // set some defaults, as these should never be used.
             logger.info(
@@ -168,7 +169,7 @@ public class USBCameraSource extends VisionSource {
                     camera.getProperty("iso_sensitivity_auto").set(0); // Disable auto ISO adjustment
                     camera.getProperty("iso_sensitivity").set(0); // Manual ISO adjustment
                     camera.getProperty("white_balance_auto_preset").set(2); // Auto white-balance disabled
-                    camera.getProperty("auto_exposure").set(1); // auto exposure disabled
+                    camera.getProperty("exposure_auto").set(1); // auto exposure disabled
                 } else {
                     // Pick a bunch of reasonable setting defaults for driver, fiducials, or otherwise
                     // nice-for-humans
@@ -176,7 +177,7 @@ public class USBCameraSource extends VisionSource {
                     camera.getProperty("iso_sensitivity_auto").set(1);
                     camera.getProperty("iso_sensitivity").set(1); // Manual ISO adjustment by default
                     camera.getProperty("white_balance_auto_preset").set(1); // Auto white-balance enabled
-                    camera.getProperty("auto_exposure").set(0); // auto exposure enabled
+                    camera.getProperty("exposure_auto").set(0); // auto exposure enabled
                 }
 
             } else {
@@ -215,8 +216,8 @@ public class USBCameraSource extends VisionSource {
                     }
 
                     // Linux kernel bump changed names -- exposure_auto is now called auto_exposure
-                    if (camera.getProperty("auto_exposure").getKind() != Kind.kNone) {
-                        var prop = camera.getProperty("auto_exposure");
+                    if (camera.getProperty("exposure_auto").getKind() != Kind.kNone) {
+                        var prop = camera.getProperty("exposure_auto");
                         // 3=auto-aperature
                         prop.set((int) 3);
                     } else {
@@ -248,42 +249,52 @@ public class USBCameraSource extends VisionSource {
         public void setExposure(double exposure) {
             if (exposure >= 0.0) {
                 try {
-                    int scaledExposure = 1;
-                    if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.PiCam)) {
-                        scaledExposure = Math.round(timeToPiCamRawExposure(pctToExposureTimeUs(exposure)));
-                        logger.debug("Setting camera raw exposure to " + scaledExposure);
-                        camera.getProperty("raw_exposure_time_absolute").set(scaledExposure);
-                        camera.getProperty("raw_exposure_time_absolute").set(scaledExposure);
+                    VideoProperty[] cameraProperties = camera.enumerateProperties();
+                    String cameraPropertiesStr = "";
 
-                        // Yay thanks v4l for changing names randomly
-                    } else if (camera.getProperty("exposure_time_absolute").getKind() != Kind.kNone
-                            && camera.getProperty("auto_exposure").getKind() != Kind.kNone) {
-                        // 1=manual-aperature
-                        camera.getProperty("auto_exposure").set(1);
-
-                        // Seems like the name changed at some point in v4l? set it ouyrselves too
-                        var prop = camera.getProperty("raw_exposure_time_absolute");
-
-                        var propMin = prop.getMin();
-                        var propMax = prop.getMax();
-
-                        if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV9281)) {
-                            propMin = 1;
-                            propMax = 75;
-                        } else if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
-                            propMin = 1;
-                            propMax = 140;
-                        }
-
-                        var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
-                        logger.debug("Setting camera exposure to " + exposure_manual_val);
-                        prop.set((int) exposure_manual_val);
-                    } else {
-                        scaledExposure = (int) Math.round(exposure);
-                        logger.debug("Setting camera exposure to " + scaledExposure);
-                        camera.setExposureManual(scaledExposure);
-                        camera.setExposureManual(scaledExposure);
+                    for (int i = 0; i < cameraProperties.length; i++) {
+                        cameraPropertiesStr +=
+                                "Name: "
+                                        + cameraProperties[i].getName()
+                                        + ", Kind: "
+                                        + cameraProperties[i].getKind()
+                                        + ", Value: "
+                                        + cameraProperties[i].getKind().getValue()
+                                        + "\n";
                     }
+
+                    logger.debug(cameraPropertiesStr);
+
+                    try {
+                        // 1=manual-aperature
+                        camera.getProperty("exposure_auto").set(1);
+                    } catch (VideoException e) {
+                        logger.error("Failed to set auto exposure!", e);
+                    }
+
+                    // Seems like the name changed at some point in v4l? set it ouyrselves too
+                    var prop = camera.getProperty("exposure_absolute");
+
+                    var propMin = prop.getMin();
+                    var propMax = prop.getMax();
+
+                    if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
+                        propMin = 1;
+                        propMax = 120;
+                    }
+
+                    var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
+                    logger.debug(
+                            "Setting camera exposure to "
+                                    + exposure_manual_val
+                                    + " (scaled from "
+                                    + exposure
+                                    + ")");
+                    logger.debug(
+                            "Camera is an ov2311: "
+                                    + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
+
+                    prop.set((int) exposure);
                 } catch (VideoException e) {
                     logger.error("Failed to set camera exposure!", e);
                 }

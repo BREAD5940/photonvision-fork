@@ -75,12 +75,12 @@ jobs:
       - uses: actions/download-artifact@v4
 
       - run: find .
-      - name: copy file via ssh password
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.WEBMASTER_SSH_HOST }}
-          username: ${{ secrets.WEBMASTER_SSH_USERNAME }}
-          password: ${{ secrets.WEBMASTER_SSH_KEY }}
-          port: ${{ secrets.WEBMASTER_SSH_PORT }}
-          source: "*"
-          target: /var/www/html/photonvision-docs/
+      # - name: copy file via ssh password
+      #   uses: appleboy/scp-action@v0.1.7
+      #   with:
+      #     host: ${{ secrets.WEBMASTER_SSH_HOST }}
+      #     username: ${{ secrets.WEBMASTER_SSH_USERNAME }}
+      #     password: ${{ secrets.WEBMASTER_SSH_KEY }}
+      #     port: ${{ secrets.WEBMASTER_SSH_PORT }}
+      #     source: "*"
+      #     target: /var/www/html/photonvision-docs/

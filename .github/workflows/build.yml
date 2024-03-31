@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,39 +31,40 @@ jobs:
         with:
           name: built-client
           path: photon-client/dist/
-  build-examples:
-    name: "Build Examples"
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Fetch tags
-        run: git fetch --tags --force
-      - name: Install Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: temurin
-      # Need to publish to maven local first, so that C++ sim can pick it up
-      # Still haven't figured out how to make the vendordep file be copied before trying to build examples
-      - name: Publish photonlib to maven local
-        run: |
-          chmod +x gradlew
-          ./gradlew publishtomavenlocal -x check
-      - name: Build Java examples
-        working-directory: photonlib-java-examples
-        run: |
-          chmod +x gradlew
-          ./gradlew copyPhotonlib -x check
-          ./gradlew build -x check --max-workers 2
-      - name: Build C++ examples
-        working-directory: photonlib-cpp-examples
-        run: |
-          chmod +x gradlew
-          ./gradlew copyPhotonlib -x check
-          ./gradlew build -x check --max-workers 2
+  # build-examples:
+  #   name: "Build Examples"
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
+  #     - name: Fetch tags
+  #       run: git fetch --tags --force
+  #     - name: Install Java 17
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         java-version: 17
+  #         distribution: temurin
+  #     # Need to publish to maven local first, so that C++ sim can pick it up
+  #     # Still haven't figured out how to make the vendordep file be copied before trying to build examples
+  #     - name: Publish photonlib to maven local
+  #       run: |
+  #         chmod +x gradlew
+  #         ./gradlew publishtomavenlocal -x check
+  #     - name: Build Java examples
+  #       working-directory: photonlib-java-examples
+  #       run: |
+  #         chmod +x gradlew
+  #         ./gradlew copyPhotonlib -x check
+  #         ./gradlew build -x check --max-workers 2
+  #     - name: Build C++ examples
+  #       working-directory: photonlib-cpp-examples
+  #       run: |
+  #         chmod +x gradlew
+  #         ./gradlew copyPhotonlib -x check
+  #         ./gradlew build -x check --max-workers 2
   build-gradle:
     name: "Gradle Build"
     runs-on: ubuntu-22.04
@@ -71,6 +74,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
       - name: Fetch tags
         run: git fetch --tags --force
       - name: Install Java 17
@@ -102,7 +106,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: 'PhotonVision/photonvision-docs.git'
+          repository: 'PhotonVision/photonvision-docs'
           ref: master
       - uses: actions/setup-python@v5
         with:
@@ -126,9 +130,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
-            artifact-name: Win64
-            architecture: x64
+          # - os: windows-2022
+          #   artifact-name: Win64
+          #   architecture: x64
           - os: macos-12
             artifact-name: macOS
             architecture: x64
@@ -141,6 +145,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
       - name: Install Java 17
         uses: actions/setup-java@v4
         with:
@@ -171,8 +176,12 @@ jobs:
     container: ${{ matrix.container }}
     name: "Photonlib - Build Docker - ${{ matrix.artifact-name }}"
     steps:
+      - name: Install SSH
+        run: |
+          apt update && apt install --yes ssh
       - uses: actions/checkout@v4
         with:
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
           fetch-depth: 0
       - name: Config Git
         run: |
@@ -195,10 +204,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            artifact-name: Win64
-            architecture: x64
-            arch-override: none
+          # - os: windows-latest
+          #   artifact-name: Win64
+          #   architecture: x64
+          #   arch-override: none
           - os: macos-latest
             artifact-name: macOS
             architecture: x64
@@ -226,6 +235,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
           fetch-depth: 0
       - name: Install Java 17
         uses: actions/setup-java@v4
@@ -271,9 +281,9 @@ jobs:
           - os: ubuntu-latest
             artifact-name: jar-Linux
             extraOpts: -Djdk.lang.Process.launchMechanism=vfork
-          - os: windows-latest
-            artifact-name: jar-Win64
-            extraOpts: ""
+          # - os: windows-latest
+          #   artifact-name: jar-Win64
+          #   extraOpts: ""
           - os: macos-latest
             artifact-name: jar-macOS
             architecture: x64
@@ -346,34 +356,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact-name: LinuxArm64
-            image_suffix: RaspberryPi
-            image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.4/photonvision_raspi.img.xz
-            cpu: cortex-a7
-            image_additional_mb: 0
-          - os: ubuntu-latest
-            artifact-name: LinuxArm64
-            image_suffix: limelight2
-            image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.4/photonvision_limelight.img.xz
-            cpu: cortex-a7
-            image_additional_mb: 0
-          - os: ubuntu-latest
-            artifact-name: LinuxArm64
-            image_suffix: limelight3
-            image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.5/photonvision_limelight3.img.xz
-            cpu: cortex-a7
-            image_additional_mb: 0
+          # - os: ubuntu-latest
+          #   artifact-name: LinuxArm64
+          #   image_suffix: RaspberryPi
+          #   image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.4/photonvision_raspi.img.xz
+          #   cpu: cortex-a7
+          #   image_additional_mb: 0
+          # - os: ubuntu-latest
+          #   artifact-name: LinuxArm64
+          #   image_suffix: limelight2
+          #   image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.4/photonvision_limelight.img.xz
+          #   cpu: cortex-a7
+          #   image_additional_mb: 0
+          # - os: ubuntu-latest
+          #   artifact-name: LinuxArm64
+          #   image_suffix: limelight3
+          #   image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.5/photonvision_limelight3.img.xz
+          #   cpu: cortex-a7
+          #   image_additional_mb: 0
           - os: ubuntu-latest
             artifact-name: LinuxArm64
             image_suffix: orangepi5
-            image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.10/photonvision_opi5.img.xz
+            image_url: https://github.com/BREAD5940/photon-image-modifier/releases/download/BREAD.2024.0.11/photonvision_opi5.img.xz
             cpu: cortex-a8
             image_additional_mb: 4096
           - os: ubuntu-latest
             artifact-name: LinuxArm64
             image_suffix: orangepi5plus
-            image_url: https://github.com/PhotonVision/photon-image-modifier/releases/download/v2024.0.10/photonvision_opi5plus.img.xz
+            image_url: https://github.com/BREAD5940/photon-image-modifier/releases/download/BREAD.2024.0.11/photonvision_opi5plus.img.xz
             cpu: cortex-a8
             image_additional_mb: 4096
 
@@ -384,6 +394,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ssh-key: '${{ secrets.PRIVATE_SSH_KEY }}'
           fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
