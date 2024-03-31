@@ -168,7 +168,7 @@ public class USBCameraSource extends VisionSource {
                     camera.getProperty("auto_exposure_bias").set(0);
                     camera.getProperty("iso_sensitivity_auto").set(0); // Disable auto ISO adjustment
                     camera.getProperty("iso_sensitivity").set(0); // Manual ISO adjustment
-                    camera.getProperty("white_balance_auto_preset").set(2); // Auto white-balance disabled
+                    camera.getProperty("white_balance_auto_preset").set(1); // Auto white-balance disabled
                     camera.getProperty("exposure_auto").set(1); // auto exposure disabled
                 } else {
                     // Pick a bunch of reasonable setting defaults for driver, fiducials, or otherwise
@@ -193,9 +193,9 @@ public class USBCameraSource extends VisionSource {
                         if (camera.getProperty("white_balance_automatic").getKind() != Kind.kNone) {
                             // 1=auto, 0=manual
                             camera.getProperty("white_balance_automatic").set(0);
-                            camera.getProperty("white_balance_temperature").set(4000);
+                            camera.getProperty("white_balance_temperature").set(3500);
                         } else {
-                            camera.setWhiteBalanceManual(4000); // Auto white-balance disabled, 4000K preset
+                            camera.setWhiteBalanceManual(3500); // Auto white-balance disabled, 4000K preset
                         }
 
                         // Most cameras leave exposure time absolute at the last value from their AE algorithm.
