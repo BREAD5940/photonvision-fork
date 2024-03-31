@@ -18,6 +18,9 @@
 package org.photonvision.common.networktables;
 
 import edu.wpi.first.networktables.RawSubscriber;
+
+import java.util.ArrayList;
+
 import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.common.dataflow.structures.PacketSerde;
 
@@ -41,6 +44,33 @@ public class PacketSubscriber<T> implements AutoCloseable {
         if (packet.getSize() < 1) return defaultValue;
 
         return serde.unpack(packet);
+    }
+
+    public class TimestampedT {
+        public final long timestamp;
+        public final T value;
+
+        public TimestampedT(long timestamp, T value) {
+            this.timestamp = timestamp;
+            this.value = value;
+        }
+    }
+
+    public ArrayList<TimestampedT> getAllValues() {
+        var currentQueue = subscriber.readQueue();
+        ArrayList<TimestampedT> values = new ArrayList<>();
+
+        for (int i = 0; i < currentQueue.length; i++) {
+            packet.clear();
+
+            packet.setData(currentQueue[i].value);
+            if (packet.getSize() >= 1) {
+                T value = serde.unpack(packet);
+                values.add(new TimestampedT(currentQueue[i].timestamp, value));
+            }
+        }
+
+        return values;
     }
 
     @Override

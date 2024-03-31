@@ -273,7 +273,7 @@ public class USBCameraSource extends VisionSource {
                     }
 
                     // Seems like the name changed at some point in v4l? set it ouyrselves too
-                    var prop = camera.getProperty("exposure_absolute");
+                    var prop = camera.getProperty("raw_exposure_absolute");
 
                     var propMin = prop.getMin();
                     var propMax = prop.getMax();
