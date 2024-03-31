@@ -43,6 +43,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.networktables.TimestampedRaw;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.Optional;
@@ -186,6 +187,36 @@ public class PhotonCamera implements AutoCloseable {
 
         // Return result.
         return ret;
+    }
+
+    public TimestampedRaw[] getUnprocessedResults() {
+        verifyVersion();
+
+        return resultSubscriber.subscriber.readQueue();
+    }
+
+    public PhotonPipelineResult getAdjustedLatestResult() {
+        var latestResult = getLatestResult();
+        double offset = 0;
+
+        // Loop through  unprocessed results to find the largest timestamp
+        var unprocessedResults = getUnprocessedResults();
+        double largestTimestamp = 0;
+        for (TimestampedRaw result : unprocessedResults) {
+            double resultTimestamp = result.timestamp / 1000000.0; // Convert from microseconds to seconds
+            largestTimestamp = Math.max(largestTimestamp, resultTimestamp);
+        }
+
+        // Check if the largest timestamp is in the future and calc the offset
+        if (largestTimestamp > Timer.getFPGATimestamp()) {
+            offset = largestTimestamp - Timer.getFPGATimestamp();
+        }
+
+        // Adjust the timestamp of the latest result to account for the future timestamp
+        double adjustedTimestamp = latestResult.getTimestampSeconds() - offset;
+        latestResult.setTimestampSeconds(adjustedTimestamp);
+
+        return latestResult;
     }
 
     /**
