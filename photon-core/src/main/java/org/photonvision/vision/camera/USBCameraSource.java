@@ -256,7 +256,7 @@ public class USBCameraSource extends VisionSource {
                         camera.getProperty("raw_exposure_time_absolute").set(scaledExposure);
 
                         // Yay thanks v4l for changing names randomly
-                    } else if (camera.getProperty("exposure_time_absolute").getKind() != Kind.kNone
+                    } else if (camera.getProperty("exposure_absolute").getKind() != Kind.kNone
                             && camera.getProperty("auto_exposure").getKind() != Kind.kNone) {
                         // 1=manual-aperature
                         camera.getProperty("auto_exposure").set(1);
