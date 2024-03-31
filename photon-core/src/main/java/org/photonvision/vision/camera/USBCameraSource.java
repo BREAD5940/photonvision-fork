@@ -69,7 +69,7 @@ public class USBCameraSource extends VisionSource {
         if (getCameraConfiguration().cameraQuirks.hasQuirks()) {
             logger.info("Quirky camera detected: " + getCameraConfiguration().cameraQuirks.baseName);
         }
-
+        
         if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.CompletelyBroken)) {
             // set some defaults, as these should never be used.
             logger.info(
@@ -169,7 +169,7 @@ public class USBCameraSource extends VisionSource {
                     camera.getProperty("iso_sensitivity_auto").set(0); // Disable auto ISO adjustment
                     camera.getProperty("iso_sensitivity").set(0); // Manual ISO adjustment
                     camera.getProperty("white_balance_auto_preset").set(2); // Auto white-balance disabled
-                    camera.getProperty("auto_exposure").set(1); // auto exposure disabled
+                    camera.getProperty("exposure_auto").set(1); // auto exposure disabled
                 } else {
                     // Pick a bunch of reasonable setting defaults for driver, fiducials, or otherwise
                     // nice-for-humans
@@ -177,7 +177,7 @@ public class USBCameraSource extends VisionSource {
                     camera.getProperty("iso_sensitivity_auto").set(1);
                     camera.getProperty("iso_sensitivity").set(1); // Manual ISO adjustment by default
                     camera.getProperty("white_balance_auto_preset").set(1); // Auto white-balance enabled
-                    camera.getProperty("auto_exposure").set(0); // auto exposure enabled
+                    camera.getProperty("exposure_auto").set(0); // auto exposure enabled
                 }
 
             } else {
@@ -216,8 +216,8 @@ public class USBCameraSource extends VisionSource {
                     }
 
                     // Linux kernel bump changed names -- exposure_auto is now called auto_exposure
-                    if (camera.getProperty("auto_exposure").getKind() != Kind.kNone) {
-                        var prop = camera.getProperty("auto_exposure");
+                    if (camera.getProperty("exposure_auto").getKind() != Kind.kNone) {
+                        var prop = camera.getProperty("exposure_auto");
                         // 3=auto-aperature
                         prop.set((int) 3);
                     } else {
@@ -267,7 +267,7 @@ public class USBCameraSource extends VisionSource {
 
                     try {
                         // 1=manual-aperature
-                        camera.getProperty("auto_exposure").set(1);
+                        camera.getProperty("exposure_auto").set(1);
                     } catch (VideoException e) {
                         logger.error("Failed to set auto exposure!", e);
                     }
@@ -294,7 +294,7 @@ public class USBCameraSource extends VisionSource {
                             "Camera is an ov2311: "
                                     + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
 
-                    prop.set((int) exposure_manual_val);
+                    prop.set((int) exposure);
                 } catch (VideoException e) {
                     logger.error("Failed to set camera exposure!", e);
                 }
