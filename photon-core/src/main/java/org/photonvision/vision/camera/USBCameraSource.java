@@ -253,11 +253,18 @@ public class USBCameraSource extends VisionSource {
                     String cameraPropertiesStr = "";
 
                     for (int i = 0; i < cameraProperties.length; i++) {
-                        cameraPropertiesStr += "Name: " + cameraProperties[i].getName() + ", Kind: " + cameraProperties[i].getKind() + ", Value: " + cameraProperties[i].getValue() + "\n";
+                        cameraPropertiesStr +=
+                                "Name: "
+                                        + cameraProperties[i].getName()
+                                        + ", Kind: "
+                                        + cameraProperties[i].getKind()
+                                        + ", Value: "
+                                        + cameraProperties[i].getKind().getValue()
+                                        + "\n";
                     }
 
                     logger.debug(cameraPropertiesStr);
-                    
+
                     try {
                         // 1=manual-aperature
                         camera.getProperty("auto_exposure").set(1);
@@ -277,8 +284,15 @@ public class USBCameraSource extends VisionSource {
                     }
 
                     var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
-                    logger.debug("Setting camera exposure to " + exposure_manual_val + " (scaled from " + exposure + ")");
-                    logger.debug("Camera is an ov2311: " + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
+                    logger.debug(
+                            "Setting camera exposure to "
+                                    + exposure_manual_val
+                                    + " (scaled from "
+                                    + exposure
+                                    + ")");
+                    logger.debug(
+                            "Camera is an ov2311: "
+                                    + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
 
                     prop.set((int) exposure_manual_val);
                 } catch (VideoException e) {
