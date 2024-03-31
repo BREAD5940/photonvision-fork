@@ -22,6 +22,7 @@ import edu.wpi.first.cscore.CvSink;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cscore.VideoException;
 import edu.wpi.first.cscore.VideoMode;
+import edu.wpi.first.cscore.VideoProperty;
 import edu.wpi.first.cscore.VideoProperty.Kind;
 import edu.wpi.first.util.PixelFormat;
 import java.util.*;
@@ -248,9 +249,21 @@ public class USBCameraSource extends VisionSource {
         public void setExposure(double exposure) {
             if (exposure >= 0.0) {
                 try {
-                    int scaledExposure = 1;
-                    // 1=manual-aperature
-                    camera.getProperty("auto_exposure").set(1);
+                    VideoProperty[] cameraProperties = camera.enumerateProperties();
+                    String cameraPropertiesStr = "";
+
+                    for (int i = 0; i < cameraProperties.length; i++) {
+                        cameraPropertiesStr += "Name: " + cameraProperties[i].getName() + ", Kind: " + cameraProperties[i].getKind() + ", Value: " + cameraProperties[i].getValue() + "\n";
+                    }
+
+                    logger.debug(cameraPropertiesStr);
+                    
+                    try {
+                        // 1=manual-aperature
+                        camera.getProperty("auto_exposure").set(1);
+                    } catch (VideoException e) {
+                        logger.error("Failed to set auto exposure!", e);
+                    }
 
                     // Seems like the name changed at some point in v4l? set it ouyrselves too
                     var prop = camera.getProperty("exposure_absolute");
@@ -266,6 +279,7 @@ public class USBCameraSource extends VisionSource {
                     var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
                     logger.debug("Setting camera exposure to " + exposure_manual_val + " (scaled from " + exposure + ")");
                     logger.debug("Camera is an ov2311: " + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
+
                     prop.set((int) exposure_manual_val);
                 } catch (VideoException e) {
                     logger.error("Failed to set camera exposure!", e);
