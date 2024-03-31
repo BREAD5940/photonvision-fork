@@ -249,39 +249,24 @@ public class USBCameraSource extends VisionSource {
             if (exposure >= 0.0) {
                 try {
                     int scaledExposure = 1;
-                    if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.PiCam)) {
-                        scaledExposure = Math.round(timeToPiCamRawExposure(pctToExposureTimeUs(exposure)));
-                        logger.debug("Setting camera raw exposure to " + scaledExposure);
-                        camera.getProperty("raw_exposure_time_absolute").set(scaledExposure);
-                        camera.getProperty("raw_exposure_time_absolute").set(scaledExposure);
+                    // 1=manual-aperature
+                    camera.getProperty("auto_exposure").set(1);
 
-                        // Yay thanks v4l for changing names randomly
-                    } else if (camera.getProperty("exposure_absolute").getKind() != Kind.kNone
-                            && camera.getProperty("auto_exposure").getKind() != Kind.kNone) {
-                        // 1=manual-aperature
-                        camera.getProperty("auto_exposure").set(1);
+                    // Seems like the name changed at some point in v4l? set it ouyrselves too
+                    var prop = camera.getProperty("exposure_absolute");
 
-                        // Seems like the name changed at some point in v4l? set it ouyrselves too
-                        var prop = camera.getProperty("exposure_absolute");
+                    var propMin = prop.getMin();
+                    var propMax = prop.getMax();
 
-                        var propMin = prop.getMin();
-                        var propMax = prop.getMax();
-
-                        if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
-                            propMin = 1;
-                            propMax = 120;
-                        }
-
-                        var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
-                        logger.debug("Setting camera exposure to " + exposure_manual_val + " (scaled from " + exposure + ")");
-                        logger.debug("Camera is an ov2311: " + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
-                        prop.set((int) exposure_manual_val);
-                    } else {
-                        scaledExposure = (int) Math.round(exposure);
-                        logger.debug("Setting camera exposure to " + scaledExposure);
-                        camera.setExposureManual(scaledExposure);
-                        camera.setExposureManual(scaledExposure);
+                    if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
+                        propMin = 1;
+                        propMax = 120;
                     }
+
+                    var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
+                    logger.debug("Setting camera exposure to " + exposure_manual_val + " (scaled from " + exposure + ")");
+                    logger.debug("Camera is an ov2311: " + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
+                    prop.set((int) exposure_manual_val);
                 } catch (VideoException e) {
                     logger.error("Failed to set camera exposure!", e);
                 }
