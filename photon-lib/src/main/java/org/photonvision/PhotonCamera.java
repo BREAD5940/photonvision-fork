@@ -57,7 +57,7 @@ public class PhotonCamera implements AutoCloseable {
     public static final String kTableName = "photonvision";
 
     private final NetworkTable cameraTable;
-    PacketSubscriber<PhotonPipelineResult> resultSubscriber;
+    public PacketSubscriber<PhotonPipelineResult> resultSubscriber;
     BooleanPublisher driverModePublisher;
     BooleanSubscriber driverModeSubscriber;
     DoublePublisher latencyMillisEntry;
