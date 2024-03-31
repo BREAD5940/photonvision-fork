@@ -25,12 +25,6 @@ import edu.wpi.first.cscore.VideoMode;
 import edu.wpi.first.cscore.VideoProperty;
 import edu.wpi.first.cscore.VideoProperty.Kind;
 import edu.wpi.first.util.PixelFormat;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.photonvision.common.configuration.CameraConfiguration;
@@ -46,50 +40,8 @@ import org.photonvision.vision.processes.VisionSource;
 import org.photonvision.vision.processes.VisionSourceSettables;
 
 public class USBCameraSource extends VisionSource {
-
-    public class BVideoProperty {
-        String path;
-        String key;
-        VideoProperty real;
-        public BVideoProperty(String path, String key, VideoProperty real) {
-            this.path = path;
-            this.key = key;
-            this.real = real;
-        }
-
-        public void set(int value) {
-            setV4lPropertyHttp(path, key, value);
-        }
-        
-        public Kind getKind(){
-            return real.getKind();
-        }
-        
-    }
-
-    public class BUsbCamera extends UsbCamera {
-
-        String path;
-
-        public BUsbCamera(String name, String path) {
-            super(name, path);
-            this.path = path;
-            //TODO Auto-generated constructor stub
-        }
-
-        // public BVideoProperty getProperty2(String prop) {
-        //     return new BVideoProperty(path, prop, getProperty(prop));
-        // }
-
-        public VideoProperty getProperty2(String prop) {
-            return getProperty(prop);
-        }
-        
-    }
-
-
     private final Logger logger;
-    private final BUsbCamera camera;
+    private final UsbCamera camera;
     private final USBCameraSettables usbCameraSettables;
     private FrameProvider usbFrameProvider;
     private final CvSink cvSink;
@@ -102,7 +54,7 @@ public class USBCameraSource extends VisionSource {
         // swap cameras around, the same /dev/videoN ID will be assigned to that camera. So instead
         // default to pinning to a particular USB port, or by "path" (appears to be a global identifier)
         // on Windows.
-        camera = new BUsbCamera(config.nickname, config.getUSBPath().orElse(config.path));
+        camera = new UsbCamera(config.nickname, config.getUSBPath().orElse(config.path));
         cvSink = CameraServer.getVideo(this.camera);
 
         // set vid/pid if not done already for future matching
@@ -162,8 +114,8 @@ public class USBCameraSource extends VisionSource {
     void disableAutoFocus() {
         if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.AdjustableFocus)) {
             try {
-                camera.getProperty2("focus_auto").set(0);
-                camera.getProperty2("focus_absolute").set(0); // Focus into infinity
+                camera.getProperty("focus_auto").set(0);
+                camera.getProperty("focus_absolute").set(0); // Focus into infinity
             } catch (VideoException e) {
                 logger.error("Unable to disable autofocus!", e);
             }
@@ -201,30 +153,31 @@ public class USBCameraSource extends VisionSource {
 
             if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.PiCam)) {
                 // Case, we know this is a picam. Go through v4l2-ctl interface directly
+
                 // Common settings
                 camera
-                        .getProperty2("image_stabilization")
+                        .getProperty("image_stabilization")
                         .set(0); // No image stabilization, as this will throw off odometry
-                camera.getProperty2("power_line_frequency").set(2); // Assume 60Hz USA
-                camera.getProperty2("scene_mode").set(0); // no presets
-                camera.getProperty2("exposure_metering_mode").set(0);
-                camera.getProperty2("exposure_dynamic_framerate").set(0);
+                camera.getProperty("power_line_frequency").set(2); // Assume 60Hz USA
+                camera.getProperty("scene_mode").set(0); // no presets
+                camera.getProperty("exposure_metering_mode").set(0);
+                camera.getProperty("exposure_dynamic_framerate").set(0);
 
                 if (!cameraAutoExposure) {
                     // Pick a bunch of reasonable setting defaults for vision processing retroreflective
-                    camera.getProperty2("auto_exposure_bias").set(0);
-                    camera.getProperty2("iso_sensitivity_auto").set(0); // Disable auto ISO adjustment
-                    camera.getProperty2("iso_sensitivity").set(0); // Manual ISO adjustment
-                    camera.getProperty2("white_balance_auto_preset").set(2); // Auto white-balance disabled
-                    camera.getProperty2("exposure_auto").set(1); // auto exposure disabled
+                    camera.getProperty("auto_exposure_bias").set(0);
+                    camera.getProperty("iso_sensitivity_auto").set(0); // Disable auto ISO adjustment
+                    camera.getProperty("iso_sensitivity").set(0); // Manual ISO adjustment
+                    camera.getProperty("white_balance_auto_preset").set(2); // Auto white-balance disabled
+                    camera.getProperty("exposure_auto").set(1); // auto exposure disabled
                 } else {
                     // Pick a bunch of reasonable setting defaults for driver, fiducials, or otherwise
                     // nice-for-humans
-                    camera.getProperty2("auto_exposure_bias").set(12);
-                    camera.getProperty2("iso_sensitivity_auto").set(1);
-                    camera.getProperty2("iso_sensitivity").set(1); // Manual ISO adjustment by default
-                    camera.getProperty2("white_balance_auto_preset").set(1); // Auto white-balance enabled
-                    camera.getProperty2("exposure_auto").set(0); // auto exposure enabled
+                    camera.getProperty("auto_exposure_bias").set(12);
+                    camera.getProperty("iso_sensitivity_auto").set(1);
+                    camera.getProperty("iso_sensitivity").set(1); // Manual ISO adjustment by default
+                    camera.getProperty("white_balance_auto_preset").set(1); // Auto white-balance enabled
+                    camera.getProperty("exposure_auto").set(0); // auto exposure enabled
                 }
 
             } else {
@@ -237,10 +190,10 @@ public class USBCameraSource extends VisionSource {
                     if (canSetWhiteBalance) {
                         // Linux kernel bump changed names -- now called white_balance_automatic and
                         // white_balance_temperature
-                        if (camera.getProperty2("white_balance_automatic").getKind() != Kind.kNone) {
+                        if (camera.getProperty("white_balance_automatic").getKind() != Kind.kNone) {
                             // 1=auto, 0=manual
-                            camera.getProperty2("white_balance_automatic").set(0);
-                            camera.getProperty2("white_balance_temperature").set(4000);
+                            camera.getProperty("white_balance_automatic").set(0);
+                            camera.getProperty("white_balance_temperature").set(4000);
                         } else {
                             camera.setWhiteBalanceManual(4000); // Auto white-balance disabled, 4000K preset
                         }
@@ -254,17 +207,17 @@ public class USBCameraSource extends VisionSource {
                     // nice-for-humans
                     if (canSetWhiteBalance) {
                         // Linux kernel bump changed names -- now called white_balance_automatic
-                        if (camera.getProperty2("white_balance_automatic").getKind() != Kind.kNone) {
+                        if (camera.getProperty("white_balance_automatic").getKind() != Kind.kNone) {
                             // 1=auto, 0=manual
-                            camera.getProperty2("white_balance_automatic").set(1);
+                            camera.getProperty("white_balance_automatic").set(1);
                         } else {
                             camera.setWhiteBalanceAuto(); // Auto white-balance enabled
                         }
                     }
 
                     // Linux kernel bump changed names -- exposure_auto is now called auto_exposure
-                    if (camera.getProperty2("exposure_auto").getKind() != Kind.kNone) {
-                        var prop = camera.getProperty2("exposure_auto");
+                    if (camera.getProperty("exposure_auto").getKind() != Kind.kNone) {
+                        var prop = camera.getProperty("exposure_auto");
                         // 3=auto-aperature
                         prop.set((int) 3);
                     } else {
@@ -312,28 +265,28 @@ public class USBCameraSource extends VisionSource {
 
                     logger.debug(cameraPropertiesStr);
 
-                    // try {
-                    //     // 1=manual-aperature
-                    //     camera.getProperty2("exposure_auto").set(1);
-                    // } catch (VideoException e) {
-                    //     logger.error("Failed to set auto exposure!", e);
-                    // }
+                    try {
+                        // 1=manual-aperature
+                        camera.getProperty("exposure_auto").set(1);
+                    } catch (VideoException e) {
+                        logger.error("Failed to set auto exposure!", e);
+                    }
 
                     // Seems like the name changed at some point in v4l? set it ouyrselves too
-                    var prop = camera.getProperty2("exposure_absolute");
+                    var prop = camera.getProperty("exposure_absolute");
 
-                    // var propMin = prop.getMin();
-                    // var propMax = prop.getMax();
+                    var propMin = prop.getMin();
+                    var propMax = prop.getMax();
 
-                    // if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
-                    //     propMin = 1;
-                    //     propMax = 120;
-                    // }
+                    if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311)) {
+                        propMin = 1;
+                        propMax = 120;
+                    }
 
-                    // var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
+                    var exposure_manual_val = MathUtils.map(Math.round(exposure), 0, 100, propMin, propMax);
                     logger.debug(
                             "Setting camera exposure to "
-                                    // + exposure_manual_val
+                                    + exposure_manual_val
                                     + " (scaled from "
                                     + exposure
                                     + ")");
@@ -342,8 +295,6 @@ public class USBCameraSource extends VisionSource {
                                     + getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.ArduOV2311));
 
                     prop.set((int) exposure);
-
-                    // setV4lPropertyHttp(getCameraConfiguration().getUSBPath().get(), "exposure_absolute", (int) exposure);
                 } catch (VideoException e) {
                     logger.error("Failed to set camera exposure!", e);
                 }
@@ -365,8 +316,8 @@ public class USBCameraSource extends VisionSource {
         public void setGain(int gain) {
             try {
                 if (getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.Gain)) {
-                    camera.getProperty2("gain_automatic").set(0);
-                    camera.getProperty2("gain").set(gain);
+                    camera.getProperty("gain_automatic").set(0);
+                    camera.getProperty("gain").set(gain);
                 }
             } catch (VideoException e) {
                 logger.error("Failed to set camera gain!", e);
@@ -492,22 +443,6 @@ public class USBCameraSource extends VisionSource {
     public boolean isVendorCamera() {
         return ConfigManager.getInstance().getConfig().getHardwareConfig().hasPresetFOV()
                 && getCameraConfiguration().cameraQuirks.hasQuirk(CameraQuirk.PiCam);
-    }
-
-    public void setV4lPropertyHttp(String path, String propertyKey, int propertyValue) {
-        String requestToSend = "http://localhost:8000?path=" + path + "&key=" + propertyKey + "&val=" + String.valueOf(propertyValue);
-        logger.debug("Attempting to request URL: " + requestToSend);
-        HttpClient client = HttpClient.newHttpClient();
-        logger.debug("2");
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(requestToSend)).build();
-        logger.debug("3");
-
-        try {
-            client.send(request, HttpResponse.BodyHandlers.discarding());
-        } catch (IOException | InterruptedException e) {
-            logger.debug("Failed to send request: " + e);
-        }
-        logger.debug("end");
     }
 
     @Override
