@@ -28,6 +28,8 @@ import org.photonvision.vision.frame.FrameProvider;
 import org.photonvision.vision.frame.FrameStaticProperties;
 import org.photonvision.vision.opencv.CVMat;
 
+import edu.wpi.first.util.WPIUtilJNI;
+
 /**
  * A {@link FrameProvider} that will read and provide an image from a {@link java.nio.file.Path
  * path}.
@@ -111,7 +113,7 @@ public class FileFrameProvider extends CpuImageProcessor {
         }
 
         lastGetMillis = System.currentTimeMillis();
-        return new CapturedFrame(out, properties, MathUtils.wpiNanoTime());
+        return new CapturedFrame(out, properties, MathUtils.wpiNanoTime(), WPIUtilJNI.getSystemTime());
     }
 
     @Override

@@ -146,6 +146,7 @@ public class SimPhotonCamera {
                 new PhotonPipelineResult(
                         heartbeatCounter,
                         now - (long) (latencyMillis * 1000),
+                        now - (long) (latencyMillis * 1000),
                         now,
                         targetList,
                         new MultiTargetPNPResult());

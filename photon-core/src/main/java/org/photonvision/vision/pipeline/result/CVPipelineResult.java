@@ -28,6 +28,7 @@ import org.photonvision.vision.target.TrackedTarget;
 public class CVPipelineResult implements Releasable {
     public final long sequenceID;
     private long imageCaptureTimestampNanos;
+    private long imageCaptureTimestampNanosSystem;
     public final double processingNanos;
     public final double fps;
     public final List<TrackedTarget> targets;
@@ -135,7 +136,15 @@ public class CVPipelineResult implements Releasable {
         return imageCaptureTimestampNanos;
     }
 
+    public long getImageCaptureTimestampNanosSystem() {
+        return imageCaptureTimestampNanosSystem;
+    }
+
     public void setImageCaptureTimestampNanos(long imageCaptureTimestampNanos) {
         this.imageCaptureTimestampNanos = imageCaptureTimestampNanos;
+    }
+    
+    public void setImageCaptureTimestampNanosSystem(long imageCaptureTimestampNanosSystem) {
+        this.imageCaptureTimestampNanosSystem = imageCaptureTimestampNanosSystem;
     }
 }

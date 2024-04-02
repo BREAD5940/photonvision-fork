@@ -30,6 +30,8 @@ import org.photonvision.vision.opencv.CVMat;
 import org.photonvision.vision.opencv.ImageRotationMode;
 import org.photonvision.vision.pipe.impl.HSVPipe.HSVParams;
 
+import edu.wpi.first.util.WPIUtilJNI;
+
 public class LibcameraGpuFrameProvider extends FrameProvider {
     private final LibcameraGpuSettables settables;
 
@@ -101,6 +103,7 @@ public class LibcameraGpuFrameProvider extends FrameProvider {
                     processedMat,
                     type,
                     MathUtils.wpiNanoTime() - latency,
+                    WPIUtilJNI.getSystemTime() - latency,
                     settables.getFrameStaticProperties());
         }
     }

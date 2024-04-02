@@ -545,6 +545,7 @@ public class PhotonCameraSim implements AutoCloseable {
                 new PhotonPipelineResult(
                         heartbeatCounter,
                         now - (long) (latencyMillis * 1000),
+                        now - (long) (latencyMillis * 1000),
                         now,
                         detectableTgts,
                         multitagResult);

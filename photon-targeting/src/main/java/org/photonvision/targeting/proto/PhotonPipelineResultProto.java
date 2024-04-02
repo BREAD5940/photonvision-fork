@@ -51,6 +51,7 @@ public class PhotonPipelineResultProto
         return new PhotonPipelineResult(
                 msg.getSequenceId(),
                 msg.getCaptureTimestampMicros(),
+                msg.getCaptureTimestampMicrosSystem(),
                 msg.getNtPublishTimestampMicros(),
                 PhotonTrackedTarget.proto.unpack(msg.getTargets()),
                 MultiTargetPNPResult.proto.unpack(msg.getMultiTargetResult()));
