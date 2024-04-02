@@ -225,6 +225,10 @@ import edu.wpi.first.wpilibj.Timer;
  
          return unprocessedResults;
      }
+
+     public double getLastCallTwo() {
+        return lastCallTwo;
+     }
  
      // public PhotonPipelineResult getAdjustedLatestResult() {
      //     var latestResult = getLatestResult();
