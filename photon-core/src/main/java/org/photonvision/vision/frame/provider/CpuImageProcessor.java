@@ -34,12 +34,14 @@ public abstract class CpuImageProcessor extends FrameProvider {
         CVMat colorImage;
         FrameStaticProperties staticProps;
         long captureTimestamp;
+        long captureTimestampSystem;
 
         public CapturedFrame(
-                CVMat colorImage, FrameStaticProperties staticProps, long captureTimestampNanos) {
+                CVMat colorImage, FrameStaticProperties staticProps, long captureTimestampNanos, long captureTimestampNanosSystem) {
             this.colorImage = colorImage;
             this.staticProps = staticProps;
             this.captureTimestamp = captureTimestampNanos;
+            this.captureTimestampSystem = captureTimestampNanosSystem;
         }
     }
 
@@ -99,6 +101,7 @@ public abstract class CpuImageProcessor extends FrameProvider {
                 outputMat,
                 m_processType,
                 input.captureTimestamp,
+                input.captureTimestampSystem,
                 input.staticProps);
     }
 

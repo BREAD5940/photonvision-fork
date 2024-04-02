@@ -131,10 +131,13 @@ public class NTDataPublisher implements CVPipelineResultConsumer {
     public void accept(CVPipelineResult result) {
         var now = WPIUtilJNI.now();
         var captureMicros = MathUtils.nanosToMicros(result.getImageCaptureTimestampNanos());
+        var captureMicrosSystem = MathUtils.nanosToMicros(result.getImageCaptureTimestampNanosSystem());
+
         var simplified =
                 new PhotonPipelineResult(
                         result.sequenceID,
                         captureMicros,
+                        captureMicrosSystem,
                         now,
                         TrackedTarget.simpleFromTrackedTargets(result.targets),
                         result.multiTagResult);

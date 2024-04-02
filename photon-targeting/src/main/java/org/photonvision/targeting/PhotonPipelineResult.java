@@ -31,6 +31,7 @@ public class PhotonPipelineResult implements ProtobufSerializable {
     // Image capture and NT publish timestamp, in microseconds and in the coprocessor timebase. As
     // reported by WPIUtilJNI::now.
     private long captureTimestampMicros = -1;
+    private long captureTimestampMicrosSystem = -1;
     private long publishTimestampMicros = -1;
 
     // Mirror of the heartbeat entry -- monotonically increasing
@@ -83,11 +84,14 @@ public class PhotonPipelineResult implements ProtobufSerializable {
     public PhotonPipelineResult(
             long sequenceID,
             long captureTimestamp,
+            long captureTimestampSystem,
             long publishTimestamp,
             List<PhotonTrackedTarget> targets,
             MultiTargetPNPResult result) {
         this.captureTimestampMicros = captureTimestamp;
+        this.captureTimestampMicrosSystem = captureTimestampSystem;
         this.publishTimestampMicros = publishTimestamp;
+
         this.sequenceID = sequenceID;
         this.targets.addAll(targets);
         this.multiTagResult = result;
@@ -143,6 +147,11 @@ public class PhotonPipelineResult implements ProtobufSerializable {
     /** The time that this image was captured, in the coprocessor's time base. */
     public long getCaptureTimestampMicros() {
         return captureTimestampMicros;
+    }
+
+    /** The time that this image was captured, in the coprocessor's time base, in system time rather than monotonic time. */
+    public long getCaptureTimestampMicrosSystem() {
+        return captureTimestampMicrosSystem;
     }
 
     /** The time that this result was published to NT, in the coprocessor's time base. */
@@ -257,6 +266,7 @@ public class PhotonPipelineResult implements ProtobufSerializable {
         public void pack(Packet packet, PhotonPipelineResult value) {
             packet.encode(value.sequenceID);
             packet.encode(value.captureTimestampMicros);
+            packet.encode(value.captureTimestampMicrosSystem);
             packet.encode(value.publishTimestampMicros);
             packet.encode((byte) value.targets.size());
             for (var target : value.targets) PhotonTrackedTarget.serde.pack(packet, target);
@@ -267,6 +277,7 @@ public class PhotonPipelineResult implements ProtobufSerializable {
         public PhotonPipelineResult unpack(Packet packet) {
             var seq = packet.decodeLong();
             var cap = packet.decodeLong();
+            var capSystem = packet.decodeLong();
             var pub = packet.decodeLong();
             var len = packet.decodeByte();
             var targets = new ArrayList<PhotonTrackedTarget>(len);
@@ -275,7 +286,7 @@ public class PhotonPipelineResult implements ProtobufSerializable {
             }
             var result = MultiTargetPNPResult.serde.unpack(packet);
 
-            return new PhotonPipelineResult(seq, cap, pub, targets, result);
+            return new PhotonPipelineResult(seq, cap, capSystem, pub, targets, result);
         }
     }
 
