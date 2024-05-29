@@ -70,7 +70,7 @@ model {
 
         repositories {
             maven {
-                url ('https://maven.photonvision.org/repository/bleedingedge')
+                url(photonMavenURL)
                 credentials {
                     username 'bread5940'
                     password System.getenv("ARTIFACTORY_API_KEY")

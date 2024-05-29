@@ -189,9 +189,19 @@ public class Calibrate3dPipe
         int imageWidth = (int) in.get(0).size.width;
         int imageHeight = (int) in.get(0).size.height;
 
+        List<MatOfFloat> levels_ = new ArrayList<>();
+        for (FindBoardCornersPipeResult observation : in) {
+            var outLevels = new MatOfFloat();
+            var levels = new float[(int) observation.objectPoints.total()];
+                        Arrays.fill(levels, 1.0f);
+            outLevels.fromArray(levels);
+            levels_.add(outLevels);
+        }
+
         MrCalResult result =
                 MrCalJNI.calibrateCamera(
                         corner_locations,
+                        levels_,
                         params.boardWidth,
                         params.boardHeight,
                         params.squareSize,
@@ -251,6 +261,7 @@ public class Calibrate3dPipe
 
         rvecs.forEach(Mat::release);
         tvecs.forEach(Mat::release);
+        levels_.forEach(Mat::release);
 
         return new CameraCalibrationCoefficients(
                 in.get(0).size,
