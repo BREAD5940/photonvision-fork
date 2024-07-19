@@ -280,7 +280,14 @@ public class PhotonPipelineResult implements ProtobufSerializable {
             var capSystem = packet.decodeLong();
             var pub = packet.decodeLong();
             var len = packet.decodeByte();
+
+            // System.out.println("Unpacking " + len + " targets");
+            if (len == -1) {
+                len = 0;
+            }
+
             var targets = new ArrayList<PhotonTrackedTarget>(len);
+
             for (int i = 0; i < len; i++) {
                 targets.add(PhotonTrackedTarget.serde.unpack(packet));
             }
