@@ -260,6 +260,11 @@ public class PhotonTrackedTarget implements ProtobufSerializable {
             }
 
             var len = packet.decodeByte();
+
+            if (len == -1) {
+                len = 0;
+            }
+
             var detectedCorners = new ArrayList<TargetCorner>(len);
             for (int i = 0; i < len; i++) {
                 detectedCorners.add(TargetCorner.serde.unpack(packet));
