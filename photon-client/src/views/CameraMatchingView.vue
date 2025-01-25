@@ -155,7 +155,7 @@ const getMatchedDevice = (info: PVCameraInfo | undefined): PVCameraInfo => {
 const cameraCononected = (uniquePath: string): boolean => {
   return (
     useStateStore().vsmState.allConnectedCameras.find((it) => cameraInfoFor(it).uniquePath === uniquePath) !== undefined
-  );
+  ); // TODO: deal with duplicate cameras
 };
 
 const unmatchedCameras = computed(() => {

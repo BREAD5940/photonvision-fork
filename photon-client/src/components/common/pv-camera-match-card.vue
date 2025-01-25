@@ -23,6 +23,9 @@ const cameraInfoFor = (camera: PVCameraInfo): any => {
   if (camera.PVFileCameraInfo) {
     return camera.PVFileCameraInfo;
   }
+  if (camera.PVDuplicateCameraInfo) {
+    return camera.PVDuplicateCameraInfo;
+  }
   return {};
 };
 </script>

@@ -30,7 +30,8 @@ import java.util.Arrays;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = PVCameraInfo.PVUsbCameraInfo.class),
     @JsonSubTypes.Type(value = PVCameraInfo.PVCSICameraInfo.class),
-    @JsonSubTypes.Type(value = PVCameraInfo.PVFileCameraInfo.class)
+    @JsonSubTypes.Type(value = PVCameraInfo.PVFileCameraInfo.class),
+    @JsonSubTypes.Type(value = PVCameraInfo.PVDuplicateCameraInfo.class)
 })
 public sealed interface PVCameraInfo {
     /**
@@ -280,7 +281,7 @@ public sealed interface PVCameraInfo {
 
         @Override
         public String name() {
-            return uuid + "DUPICLATE;lkjas";
+            return "DUPLICATE OF " + uuid;
         }
 
         @Override

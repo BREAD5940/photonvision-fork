@@ -35,6 +35,8 @@ public class DuplicateUsbCameraSource extends VisionSource {
         private Supplier<FrameStaticProperties> m_propsSupplier;
 
         private DuplicateFrameProvider(UsbCamera camera, Supplier<FrameStaticProperties> propsSupplier) {
+            super();
+
             var name = "DUPLICATE " + camera.getName();
             this.logger = new Logger(DuplicateFrameProvider.class, name, LogGroup.Camera);
 
@@ -44,6 +46,8 @@ public class DuplicateUsbCameraSource extends VisionSource {
             m_sink.setEnabled(true);
 
             m_propsSupplier = propsSupplier;
+
+            onCameraConnected();
         }
 
         @Override
@@ -89,8 +93,9 @@ public class DuplicateUsbCameraSource extends VisionSource {
     private static class NullSettables extends VisionSourceSettables {
         private HashMap<Integer, VideoMode> m_videoModes = new HashMap<>();
 
-        protected NullSettables(CameraConfiguration configuration) {
+        protected NullSettables(CameraConfiguration configuration, HashMap<Integer, VideoMode> modes) {
             super(configuration);
+            this.m_videoModes = modes;
         }
 
         @Override
@@ -175,7 +180,13 @@ public class DuplicateUsbCameraSource extends VisionSource {
 
         m_frameProvider = new DuplicateFrameProvider(source.getCamera(),
                 source.getSettables()::getFrameStaticProperties);
-        m_settables = new NullSettables(cameraConfiguration);
+        
+        if (source.getCamera().isConnected()) {
+            m_settables = new NullSettables(cameraConfiguration, 
+                source.getSettables().getAllVideoModes());
+        } else {
+            throw new UnsupportedOperationException("Unimplemented else case");
+        }
     }
 
     @Override
