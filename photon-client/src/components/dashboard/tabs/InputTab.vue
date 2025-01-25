@@ -73,6 +73,16 @@ const interactiveCols = computed(() =>
 
 <template>
   <div>
+    <v-banner
+      v-if="useCameraSettingsStore().cameraIsDuplicate"
+      dark
+      rounded
+      color="error"
+      text-color="white"
+      icon="mdi-information-outline"
+    >
+      Camera is duplicate - (some) camera settings disabled!
+    </v-banner>
     <pv-switch
       v-model="useCameraSettingsStore().currentPipelineSettings.cameraAutoExposure"
       class="pt-2"
@@ -80,10 +90,11 @@ const interactiveCols = computed(() =>
       :switch-cols="interactiveCols"
       tooltip="Enables or Disables camera automatic adjustment for current lighting conditions"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraAutoExposure: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-slider
       v-model="useCameraSettingsStore().currentPipelineSettings.cameraExposureRaw"
-      :disabled="useCameraSettingsStore().currentCameraSettings.pipelineSettings.cameraAutoExposure"
+      :disabled="useCameraSettingsStore().currentCameraSettings.pipelineSettings.cameraAutoExposure || useCameraSettingsStore().cameraIsDuplicate"
       label="Exposure"
       tooltip="Directly controls how long the camera shutter remains open. Units are dependant on the underlying driver."
       :min="useCameraSettingsStore().minExposureRaw"
@@ -99,6 +110,7 @@ const interactiveCols = computed(() =>
       :max="100"
       :slider-cols="interactiveCols"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraBrightness: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-slider
       v-if="useCameraSettingsStore().currentPipelineSettings.cameraGain >= 0"
@@ -109,6 +121,7 @@ const interactiveCols = computed(() =>
       :max="100"
       :slider-cols="interactiveCols"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraGain: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-slider
       v-if="useCameraSettingsStore().currentPipelineSettings.cameraRedGain !== -1"
@@ -119,6 +132,7 @@ const interactiveCols = computed(() =>
       :slider-cols="interactiveCols"
       tooltip="Controls red automatic white balance gain, which affects how the camera captures colors in different conditions"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraRedGain: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-slider
       v-if="useCameraSettingsStore().currentPipelineSettings.cameraBlueGain !== -1"
@@ -129,6 +143,7 @@ const interactiveCols = computed(() =>
       :slider-cols="interactiveCols"
       tooltip="Controls blue automatic white balance gain, which affects how the camera captures colors in different conditions"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraBlueGain: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-switch
       v-model="useCameraSettingsStore().currentPipelineSettings.cameraAutoWhiteBalance"
@@ -136,10 +151,11 @@ const interactiveCols = computed(() =>
       :switch-cols="interactiveCols"
       tooltip="Enables or Disables camera automatic adjustment for current lighting conditions"
       @input="(args) => useCameraSettingsStore().changeCurrentPipelineSetting({ cameraAutoWhiteBalance: args }, false)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-slider
       v-model="useCameraSettingsStore().currentPipelineSettings.cameraWhiteBalanceTemp"
-      :disabled="useCameraSettingsStore().currentPipelineSettings.cameraAutoWhiteBalance"
+      :disabled="useCameraSettingsStore().currentPipelineSettings.cameraAutoWhiteBalance || useCameraSettingsStore().cameraIsDuplicate"
       label="White Balance Temperature"
       :min="useCameraSettingsStore().minWhiteBalanceTemp"
       :max="useCameraSettingsStore().maxWhiteBalanceTemp"
@@ -161,6 +177,7 @@ const interactiveCols = computed(() =>
       :items="cameraResolutions"
       :select-cols="interactiveCols"
       @input="(args) => handleResolutionChange(args)"
+      :disabled="useCameraSettingsStore().cameraIsDuplicate"
     />
     <pv-select
       v-model="useCameraSettingsStore().currentPipelineSettings.streamingFrameDivisor"

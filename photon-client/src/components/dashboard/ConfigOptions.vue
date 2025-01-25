@@ -148,13 +148,13 @@ onBeforeUpdate(() => {
     <template v-if="!useCameraSettingsStore().hasConnected">
       <v-col cols="12">
         <v-card color="error">
-          <v-card-title class="white--text">
+          <v-card-title class="white--text mb-2">
             Camera has not connected. Please check your connection and try again.
           </v-card-title>
         </v-card>
       </v-col>
     </template>
-    <template v-else>
+    <template>
       <v-col
         v-for="(tabGroupData, tabGroupIndex) in tabGroups"
         :key="tabGroupIndex"

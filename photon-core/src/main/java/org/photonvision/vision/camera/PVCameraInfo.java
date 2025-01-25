@@ -30,7 +30,8 @@ import java.util.Arrays;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = PVCameraInfo.PVUsbCameraInfo.class),
     @JsonSubTypes.Type(value = PVCameraInfo.PVCSICameraInfo.class),
-    @JsonSubTypes.Type(value = PVCameraInfo.PVFileCameraInfo.class)
+    @JsonSubTypes.Type(value = PVCameraInfo.PVFileCameraInfo.class),
+    @JsonSubTypes.Type(value = PVCameraInfo.PVDuplicateCameraInfo.class)
 })
 public sealed interface PVCameraInfo {
     /**
@@ -261,6 +262,56 @@ public sealed interface PVCameraInfo {
         @Override
         public String toString() {
             return "PVFileCameraInfo[type=" + type() + ", filename=" + name + ", path='" + path + "']";
+        }
+    }
+
+    @JsonTypeName("PVDuplicateCameraInfo")
+    public static final class PVDuplicateCameraInfo implements PVCameraInfo {
+        public final String uuid;
+
+        @JsonCreator
+        public PVDuplicateCameraInfo(@JsonProperty("uuid") String uuid) {
+            this.uuid = uuid;
+        }
+
+        @Override
+        public String path() {
+            return uuid;
+        }
+
+        @Override
+        public String name() {
+            return "DUPLICATE OF " + uuid;
+        }
+
+        @Override
+        public String uniquePath() {
+            return path();
+        }
+
+        @Override
+        public String[] otherPaths() {
+            return new String[0];
+        }
+
+        @Override
+        public CameraType type() {
+            return CameraType.FileCamera;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (obj instanceof PVFileCameraInfo info) {
+                return equals(info);
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "PVDuplicateCameraInfo [uuid=" + uuid + "]";
         }
     }
 

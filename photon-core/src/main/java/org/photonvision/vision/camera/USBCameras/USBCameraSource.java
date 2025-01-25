@@ -280,4 +280,8 @@ public class USBCameraSource extends VisionSource {
                 cameraConfiguration,
                 getCameraConfiguration().cameraQuirks);
     }
+
+    public UsbCamera getCamera() {
+        return camera;
+    }
 }
