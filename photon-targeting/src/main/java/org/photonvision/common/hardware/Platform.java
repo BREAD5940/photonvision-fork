@@ -240,7 +240,7 @@ public enum Platform {
     }
 
     private static boolean isOrangePi() {
-        return fileHasText("/proc/device-tree/model", "Orange Pi 5");
+        return true;
     }
 
     private static boolean isCoolPi4b() {
