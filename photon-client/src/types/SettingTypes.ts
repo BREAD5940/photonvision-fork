@@ -91,11 +91,16 @@ export interface PVFileCameraInfo {
   uniquePath: string;
 }
 
+export interface PVDuplicateCameraInfo {
+  uuid: string; // uuid of module we duplicate
+}
+
 // This camera info will only ever hold one of its members - the others should be undefined.
 export class PVCameraInfo {
   PVUsbCameraInfo: PVUsbCameraInfo | undefined;
   PVCSICameraInfo: PVCSICameraInfo | undefined;
   PVFileCameraInfo: PVFileCameraInfo | undefined;
+  PVDuplicateCameraInfo: PVDuplicateCameraInfo | undefined;
 }
 
 export interface VsmState {

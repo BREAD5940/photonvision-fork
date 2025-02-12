@@ -50,7 +50,7 @@ public abstract class CpuImageProcessor extends FrameProvider {
 
     private final Object m_mutex = new Object();
 
-    abstract CapturedFrame getInputMat();
+    protected abstract CapturedFrame getInputMat();
 
     public CpuImageProcessor() {
         m_hsvPipe.setParams(
