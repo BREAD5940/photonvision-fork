@@ -43,6 +43,7 @@ import org.photonvision.raspi.LibCameraJNILoader;
 import org.photonvision.vision.camera.CameraType;
 import org.photonvision.vision.camera.FileVisionSource;
 import org.photonvision.vision.camera.PVCameraInfo;
+import org.photonvision.vision.camera.USBCameras.DuplicateUsbCameraSource;
 import org.photonvision.vision.camera.USBCameras.USBCameraSource;
 import org.photonvision.vision.camera.csi.LibcameraGpuSource;
 
@@ -220,6 +221,13 @@ public class VisionSourceManager {
         var module = vmm.addSource(source);
 
         module.start();
+
+        // always add a spooky new camera
+        if (source instanceof USBCameraSource usbSource) {
+            var duplicateSource = new DuplicateUsbCameraSource(usbSource);
+            var duplicateModule = vmm.addSource(duplicateSource);
+            duplicateModule.start();
+        }
 
         // We have a new camera! Tell the world about it
         DataChangeService.getInstance()

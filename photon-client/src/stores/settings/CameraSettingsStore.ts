@@ -90,6 +90,9 @@ export const useCameraSettingsStore = defineStore("cameraSettings", {
     },
     hasConnected(): boolean {
       return this.currentCameraSettings.hasConnected;
+    },
+    cameraIsDuplicate(): boolean {
+      return this.currentCameraSettings.matchedCameraInfo.PVDuplicateCameraInfo !== undefined;
     }
   },
   actions: {
