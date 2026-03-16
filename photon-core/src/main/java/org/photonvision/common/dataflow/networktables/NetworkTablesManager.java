@@ -17,7 +17,6 @@
 
 package org.photonvision.common.dataflow.networktables;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.cscore.CameraServerJNI;
 import edu.wpi.first.networktables.LogMessage;
 import edu.wpi.first.networktables.MultiSubscriber;
@@ -25,13 +24,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableEvent.Kind;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.HashMap;
 import org.photonvision.PhotonVersion;
 import org.photonvision.common.configuration.CameraConfiguration;
@@ -46,7 +42,6 @@ import org.photonvision.common.logging.LogLevel;
 import org.photonvision.common.logging.Logger;
 import org.photonvision.common.networking.NetworkUtils;
 import org.photonvision.common.util.TimedTaskManager;
-import org.photonvision.common.util.file.JacksonUtils;
 
 public class NetworkTablesManager {
     private static final Logger logger =
@@ -56,7 +51,6 @@ public class NetworkTablesManager {
     private final String kRootTableName = "/photonvision";
     // The coprocessors table should only be used for operations/data related to MAC address
     public final String kCoprocTableName = "coprocessors";
-    private final String kFieldLayoutName = "apriltag_field_layout";
     public final NetworkTable kRootTable = ntInstance.getTable(kRootTableName);
     public final NetworkTable kCoprocTable = kRootTable.getSubTable(kCoprocTableName);
 
@@ -76,9 +70,6 @@ public class NetworkTablesManager {
 
     private boolean m_isRetryingConnection = false;
 
-    private StringSubscriber m_fieldLayoutSubscriber =
-            kRootTable.getStringTopic(kFieldLayoutName).subscribe("");
-
     private final TimeSyncManager m_timeSync = new TimeSyncManager(kRootTable);
 
     NTDriverStation ntDriverStation;
@@ -87,9 +78,6 @@ public class NetworkTablesManager {
         ntInstance.addLogger(
                 LogMessage.kInfo, LogMessage.kCritical, this::logNtMessage); // to hide error messages
         ntInstance.addConnectionListener(true, this::checkNtConnectState); // to hide error messages
-
-        ntInstance.addListener(
-                m_fieldLayoutSubscriber, EnumSet.of(Kind.kValueAll), this::onFieldLayoutChanged);
 
         ntDriverStation = new NTDriverStation(this.getNTInst());
 
@@ -193,24 +181,6 @@ public class NetworkTablesManager {
 
     public NetworkTableInstance getNTInst() {
         return ntInstance;
-    }
-
-    private void onFieldLayoutChanged(NetworkTableEvent event) {
-        var atfl_json = event.valueData.value.getString();
-        try {
-            System.out.println("Got new field layout!");
-            var atfl = JacksonUtils.deserialize(atfl_json, AprilTagFieldLayout.class);
-            ConfigManager.getInstance().getConfig().setApriltagFieldLayout(atfl);
-            ConfigManager.getInstance().requestSave();
-            DataChangeService.getInstance()
-                    .publishEvent(
-                            new OutgoingUIEvent<>(
-                                    "fullsettings",
-                                    UIPhotonConfiguration.programStateToUi(ConfigManager.getInstance().getConfig())));
-        } catch (IOException e) {
-            logger.error("Error deserializing atfl!");
-            logger.error(atfl_json);
-        }
     }
 
     public void broadcastConnectedStatus() {

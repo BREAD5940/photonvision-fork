@@ -257,13 +257,6 @@ public class Main {
             logger.error("Failed to parse command-line options!", e);
         }
 
-        // We don't want to trigger an exit in test mode or smoke test. This is
-        // specifically for MacOS.
-        if (!(Platform.isSupported() || isSmoketest || isTestMode)) {
-            logger.error("This platform is unsupported!");
-            System.exit(1);
-        }
-
         try {
             boolean success = LoadJNI.loadLibraries();
 
