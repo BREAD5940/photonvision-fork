@@ -19,12 +19,8 @@ package org.photonvision.common.dataflow.networktables;
 
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTablesJNI;
 import java.util.List;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.photonvision.common.configuration.ConfigManager;
 import org.photonvision.common.dataflow.CVPipelineResultConsumer;
 import org.photonvision.common.logging.LogGroup;
@@ -43,111 +39,17 @@ public class NTDataPublisher implements CVPipelineResultConsumer {
 
     private final NTTopicSet ts = new NTTopicSet();
 
-    NTDataChangeListener pipelineIndexListener;
-    private final Supplier<Integer> pipelineIndexSupplier;
-    private final Consumer<Integer> pipelineIndexConsumer;
-
-    NTDataChangeListener driverModeListener;
-    private final BooleanSupplier driverModeSupplier;
-    private final Consumer<Boolean> driverModeConsumer;
-
-    NTDataChangeListener fpsLimitListener;
-    private final Consumer<Integer> fpsLimitConsumer;
-    private final Supplier<Integer> fpsLimitSupplier;
-
-    public NTDataPublisher(
-            String cameraNickname,
-            Supplier<Integer> pipelineIndexSupplier,
-            Consumer<Integer> pipelineIndexConsumer,
-            BooleanSupplier driverModeSupplier,
-            Consumer<Boolean> driverModeConsumer,
-            Supplier<Integer> fpsLimitSupplier,
-            Consumer<Integer> fpsLimitConsumer) {
-        this.pipelineIndexSupplier = pipelineIndexSupplier;
-        this.pipelineIndexConsumer = pipelineIndexConsumer;
-        this.driverModeSupplier = driverModeSupplier;
-        this.driverModeConsumer = driverModeConsumer;
-        this.fpsLimitSupplier = fpsLimitSupplier;
-        this.fpsLimitConsumer = fpsLimitConsumer;
-
+    public NTDataPublisher(String cameraNickname) {
         updateCameraNickname(cameraNickname);
-        updateEntries();
-    }
-
-    private void onPipelineIndexChange(NetworkTableEvent entryNotification) {
-        var newIndex = (int) entryNotification.valueData.value.getInteger();
-        var originalIndex = pipelineIndexSupplier.get();
-
-        // ignore indexes below 0
-        if (newIndex < 0) {
-            ts.pipelineIndexPublisher.set(originalIndex);
-            return;
-        }
-
-        if (newIndex == originalIndex) {
-            logger.debug("Pipeline index is already " + newIndex);
-            return;
-        }
-
-        pipelineIndexConsumer.accept(newIndex);
-        var setIndex = pipelineIndexSupplier.get();
-        if (newIndex != setIndex) { // set failed
-            ts.pipelineIndexPublisher.set(setIndex);
-            // TODO: Log
-        }
-        logger.debug("Set pipeline index to " + newIndex);
-    }
-
-    private void onDriverModeChange(NetworkTableEvent entryNotification) {
-        var newDriverMode = entryNotification.valueData.value.getBoolean();
-        var originalDriverMode = driverModeSupplier.getAsBoolean();
-
-        if (newDriverMode == originalDriverMode) {
-            logger.debug("Driver mode is already " + newDriverMode);
-            return;
-        }
-
-        driverModeConsumer.accept(newDriverMode);
-        logger.debug("Set driver mode to " + newDriverMode);
-    }
-
-    private void onFPSLimitChange(NetworkTableEvent entryNotification) {
-        var newFPSLimit = (int) entryNotification.valueData.value.getInteger();
-        var originalFPSLimit = fpsLimitSupplier.get();
-
-        if (newFPSLimit == originalFPSLimit) {
-            logger.debug("FPS limit is already " + newFPSLimit);
-            return;
-        }
-
-        fpsLimitConsumer.accept(newFPSLimit);
-        logger.debug("Set FPS limit to " + newFPSLimit);
+        ts.updateEntries();
     }
 
     private void removeEntries() {
-        if (pipelineIndexListener != null) pipelineIndexListener.remove();
-        if (driverModeListener != null) driverModeListener.remove();
         ts.removeEntries();
     }
 
     private void updateEntries() {
-        if (pipelineIndexListener != null) pipelineIndexListener.remove();
-        if (driverModeListener != null) driverModeListener.remove();
-        if (fpsLimitListener != null) fpsLimitListener.remove();
-
         ts.updateEntries();
-
-        pipelineIndexListener =
-                new NTDataChangeListener(
-                        ts.subTable.getInstance(), ts.pipelineIndexRequestSub, this::onPipelineIndexChange);
-
-        driverModeListener =
-                new NTDataChangeListener(
-                        ts.subTable.getInstance(), ts.driverModeSubscriber, this::onDriverModeChange);
-
-        fpsLimitListener =
-                new NTDataChangeListener(
-                        ts.subTable.getInstance(), ts.fpsLimitSubscriber, this::onFPSLimitChange);
     }
 
     public void updateCameraNickname(String newCameraNickname) {
@@ -194,9 +96,6 @@ public class NTDataPublisher implements CVPipelineResultConsumer {
             ts.protoResultPublisher.set(simplified);
         }
 
-        ts.pipelineIndexPublisher.set(pipelineIndexSupplier.get());
-        ts.driverModePublisher.set(driverModeSupplier.getAsBoolean());
-        ts.fpsLimitPublisher.set(fpsLimitSupplier.get());
         ts.latencyMillisEntry.set(acceptedResult.getLatencyMillis());
         ts.fpsEntry.set(acceptedResult.fps);
         ts.hasTargetEntry.set(acceptedResult.hasTargets());
@@ -223,18 +122,6 @@ public class NTDataPublisher implements CVPipelineResultConsumer {
             ts.targetPoseEntry.set(new Transform3d());
             ts.bestTargetPosX.set(0);
             ts.bestTargetPosY.set(0);
-        }
-
-        // Something in the result can sometimes be null -- so check probably too many things
-        if (acceptedResult.inputAndOutputFrame != null
-                && acceptedResult.inputAndOutputFrame.frameStaticProperties != null
-                && acceptedResult.inputAndOutputFrame.frameStaticProperties.cameraCalibration != null) {
-            var fsp = acceptedResult.inputAndOutputFrame.frameStaticProperties;
-            ts.cameraIntrinsicsPublisher.accept(fsp.cameraCalibration.getIntrinsicsArr());
-            ts.cameraDistortionPublisher.accept(fsp.cameraCalibration.getDistCoeffsArr());
-        } else {
-            ts.cameraIntrinsicsPublisher.accept(new double[0]);
-            ts.cameraDistortionPublisher.accept(new double[0]);
         }
 
         ts.heartbeatPublisher.set(acceptedResult.sequenceID);

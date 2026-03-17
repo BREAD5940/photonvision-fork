@@ -147,13 +147,7 @@ public class VisionModule {
 
         ntConsumer =
                 new NTDataPublisher(
-                        visionSource.getSettables().getConfiguration().nickname,
-                        pipelineManager::getRequestedIndex,
-                        this::setPipeline,
-                        pipelineManager::getDriverMode,
-                        this::setDriverMode,
-                        this::getFPSLimit,
-                        this::setFPSLimit);
+                        visionSource.getSettables().getConfiguration().nickname);
         uiDataConsumer = new UIDataPublisher(visionSource.getSettables().getConfiguration().uniqueName);
         statusLEDsConsumer =
                 new StatusLEDConsumer(visionSource.getSettables().getConfiguration().uniqueName);

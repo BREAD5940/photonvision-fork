@@ -19,12 +19,8 @@ package org.photonvision.common.networktables;
 
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.BooleanPublisher;
-import edu.wpi.first.networktables.BooleanSubscriber;
-import edu.wpi.first.networktables.BooleanTopic;
-import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
-import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.IntegerTopic;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.ProtobufPublisher;
@@ -47,16 +43,6 @@ public class NTTopicSet {
     public PacketPublisher<PhotonPipelineResult> resultPublisher;
     public ProtobufPublisher<PhotonPipelineResult> protoResultPublisher;
 
-    public IntegerPublisher pipelineIndexPublisher;
-    public IntegerSubscriber pipelineIndexRequestSub;
-
-    public BooleanTopic driverModeEntry;
-    public BooleanPublisher driverModePublisher;
-    public BooleanSubscriber driverModeSubscriber;
-
-    public IntegerPublisher fpsLimitPublisher;
-    public IntegerSubscriber fpsLimitSubscriber;
-
     public DoublePublisher latencyMillisEntry;
     public DoublePublisher fpsEntry;
     public BooleanPublisher hasTargetEntry;
@@ -73,10 +59,6 @@ public class NTTopicSet {
     // Heartbeat
     public IntegerTopic heartbeatTopic;
     public IntegerPublisher heartbeatPublisher;
-
-    // Camera Calibration
-    public DoubleArrayPublisher cameraIntrinsicsPublisher;
-    public DoubleArrayPublisher cameraDistortionPublisher;
 
     public void updateEntries() {
         var rawBytesEntry =
@@ -95,20 +77,6 @@ public class NTTopicSet {
                         .getProtobufTopic("result_proto", PhotonPipelineResult.proto)
                         .publish(PubSubOption.periodic(0.01), PubSubOption.sendAll(true));
 
-        pipelineIndexPublisher = subTable.getIntegerTopic("pipelineIndexState").publish();
-        pipelineIndexRequestSub = subTable.getIntegerTopic("pipelineIndexRequest").subscribe(0);
-
-        driverModePublisher = subTable.getBooleanTopic("driverMode").publish();
-        driverModeSubscriber = subTable.getBooleanTopic("driverModeRequest").subscribe(false);
-
-        // Fun little hack to make the request show up
-        driverModeSubscriber.getTopic().publish().setDefault(false);
-
-        fpsLimitPublisher = subTable.getIntegerTopic("fpsLimit").publish();
-        fpsLimitSubscriber = subTable.getIntegerTopic("fpsLimitRequest").subscribe(-1);
-
-        fpsLimitSubscriber.getTopic().publish().setDefault(-1);
-
         latencyMillisEntry = subTable.getDoubleTopic("latencyMillis").publish();
         fpsEntry = subTable.getDoubleTopic("fps").publish();
         hasTargetEntry = subTable.getBooleanTopic("hasTarget").publish();
@@ -124,22 +92,11 @@ public class NTTopicSet {
 
         heartbeatTopic = subTable.getIntegerTopic("heartbeat");
         heartbeatPublisher = heartbeatTopic.publish();
-
-        cameraIntrinsicsPublisher = subTable.getDoubleArrayTopic("cameraIntrinsics").publish();
-        cameraDistortionPublisher = subTable.getDoubleArrayTopic("cameraDistortion").publish();
     }
 
     @SuppressWarnings("DuplicatedCode")
     public void removeEntries() {
         if (resultPublisher != null) resultPublisher.close();
-        if (pipelineIndexPublisher != null) pipelineIndexPublisher.close();
-        if (pipelineIndexRequestSub != null) pipelineIndexRequestSub.close();
-
-        if (driverModePublisher != null) driverModePublisher.close();
-        if (driverModeSubscriber != null) driverModeSubscriber.close();
-
-        if (fpsLimitPublisher != null) fpsLimitPublisher.close();
-        if (fpsLimitSubscriber != null) fpsLimitSubscriber.close();
 
         if (latencyMillisEntry != null) latencyMillisEntry.close();
         if (fpsEntry != null) fpsEntry.close();
@@ -153,8 +110,5 @@ public class NTTopicSet {
         if (bestTargetPosY != null) bestTargetPosY.close();
 
         if (heartbeatPublisher != null) heartbeatPublisher.close();
-
-        if (cameraIntrinsicsPublisher != null) cameraIntrinsicsPublisher.close();
-        if (cameraDistortionPublisher != null) cameraDistortionPublisher.close();
     }
 }
