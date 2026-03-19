@@ -74,7 +74,6 @@ const settingsHaveChanged = (): boolean => {
     a.hostname !== b.hostname ||
     a.runNTServer !== b.runNTServer ||
     a.shouldManage !== b.shouldManage ||
-    a.shouldPublishProto !== b.shouldPublishProto ||
     a.networkManagerIface !== b.networkManagerIface ||
     a.setStaticCommand !== b.setStaticCommand ||
     a.setDHCPcommand !== b.setDHCPcommand
@@ -92,7 +91,6 @@ const saveGeneralSettings = async () => {
     setDHCPcommand: tempSettingsStruct.value.setDHCPcommand || "",
     setStaticCommand: tempSettingsStruct.value.setStaticCommand || "",
     shouldManage: tempSettingsStruct.value.shouldManage,
-    shouldPublishProto: tempSettingsStruct.value.shouldPublishProto,
     staticIp: tempSettingsStruct.value.staticIp
   };
 
@@ -292,21 +290,6 @@ watchEffect(() => {
           color="buttonActive"
           density="compact"
           text="This mode is intended for debugging and should be off for proper usage. PhotonLib will NOT work!"
-          icon="mdi-information-outline"
-          :variant="theme.global.name.value === 'LightTheme' ? 'elevated' : 'tonal'"
-        />
-        <v-card-title class="pl-0 pt-3 pb-10px">Miscellaneous</v-card-title>
-        <pv-switch
-          v-model="tempSettingsStruct.shouldPublishProto"
-          label="Also Publish Protobuf"
-          tooltip="If enabled, Photon will publish all pipeline results in both the Packet and Protobuf formats. This is useful for visualizing pipeline results from NT viewers such as glass and logging software such as AdvantageScope. Note: photon-lib will ignore this value and is not recommended on the field for performance."
-          :label-cols="4"
-        />
-        <v-alert
-          v-if="tempSettingsStruct.shouldPublishProto"
-          color="buttonActive"
-          density="compact"
-          text="This mode is intended for debugging and may reduce performance; it should be off for field use."
           icon="mdi-information-outline"
           :variant="theme.global.name.value === 'LightTheme' ? 'elevated' : 'tonal'"
         />

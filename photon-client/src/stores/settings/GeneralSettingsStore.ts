@@ -87,7 +87,6 @@ export const useSettingsStore = defineStore("settings", {
       staticIp: "",
       hostname: "photonvision",
       runNTServer: false,
-      shouldPublishProto: false,
       networkInterfaceNames: [
         {
           connName: "Example Wired Connection",

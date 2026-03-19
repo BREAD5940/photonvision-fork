@@ -21,8 +21,6 @@ import com.diozero.api.DeviceMode;
 import com.diozero.internal.spi.NativeDeviceFactoryInterface;
 import com.diozero.sbc.BoardPinInfo;
 import com.diozero.sbc.DeviceFactoryHelper;
-import edu.wpi.first.networktables.IntegerPublisher;
-import edu.wpi.first.networktables.IntegerSubscriber;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -31,8 +29,6 @@ import java.util.function.Supplier;
 import org.photonvision.common.configuration.ConfigManager;
 import org.photonvision.common.configuration.HardwareConfig;
 import org.photonvision.common.configuration.HardwareSettings;
-import org.photonvision.common.dataflow.networktables.NTDataChangeListener;
-import org.photonvision.common.dataflow.networktables.NetworkTablesManager;
 import org.photonvision.common.hardware.gpio.CustomAdapter;
 import org.photonvision.common.hardware.gpio.CustomDeviceFactory;
 import org.photonvision.common.logging.LogGroup;
@@ -51,14 +47,6 @@ public class HardwareManager {
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final StatusLED statusLED;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final IntegerSubscriber ledModeRequest;
-
-    private final IntegerPublisher ledModeState;
-
-    @SuppressWarnings({"FieldCanBeLocal", "unused"})
-    private final NTDataChangeListener ledModeListener;
-
     public final VisionLED visionLED; // May be null if no LED is specified
 
     public static HardwareManager getInstance() {
@@ -72,15 +60,6 @@ public class HardwareManager {
     private HardwareManager(HardwareConfig hardwareConfig, HardwareSettings hardwareSettings) {
         this.hardwareConfig = hardwareConfig;
         this.hardwareSettings = hardwareSettings;
-
-        ledModeRequest =
-                NetworkTablesManager.getInstance()
-                        .kRootTable
-                        .getIntegerTopic("ledModeRequest")
-                        .subscribe(-1);
-        ledModeState =
-                NetworkTablesManager.getInstance().kRootTable.getIntegerTopic("ledModeState").publish();
-        ledModeState.set(VisionLEDMode.kDefault.value);
 
         // Device factory is lazy to prevent creating one if it will go unused.
         Supplier<NativeDeviceFactoryInterface> lazyDeviceFactory =
@@ -120,15 +99,7 @@ public class HardwareManager {
                                 hasBrightnessRange ? hardwareConfig.ledBrightnessRange.get(0) : 0,
                                 hasBrightnessRange ? hardwareConfig.ledBrightnessRange.get(1) : 100,
                                 hardwareConfig.ledPWMFrequency,
-                                ledModeState::set);
-
-        ledModeListener =
-                visionLED == null
-                        ? null
-                        : new NTDataChangeListener(
-                                NetworkTablesManager.getInstance().kRootTable.getInstance(),
-                                ledModeRequest,
-                                visionLED::onLedModeChange);
+                                ignored -> {});
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::onJvmExit));
 

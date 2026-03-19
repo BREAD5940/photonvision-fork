@@ -21,7 +21,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTablesJNI;
 import java.util.List;
-import org.photonvision.common.configuration.ConfigManager;
 import org.photonvision.common.dataflow.CVPipelineResultConsumer;
 import org.photonvision.common.logging.LogGroup;
 import org.photonvision.common.logging.Logger;
@@ -92,9 +91,6 @@ public class NTDataPublisher implements CVPipelineResultConsumer {
 
         // random guess at size of the array
         ts.resultPublisher.set(simplified, 1024);
-        if (ConfigManager.getInstance().getConfig().getNetworkConfig().shouldPublishProto) {
-            ts.protoResultPublisher.set(simplified);
-        }
 
         ts.latencyMillisEntry.set(acceptedResult.getLatencyMillis());
         ts.fpsEntry.set(acceptedResult.fps);

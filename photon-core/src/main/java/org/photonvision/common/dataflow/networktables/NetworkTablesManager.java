@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.Arrays;
 import java.util.HashMap;
-import org.photonvision.PhotonVersion;
 import org.photonvision.common.configuration.CameraConfiguration;
 import org.photonvision.common.configuration.ConfigManager;
 import org.photonvision.common.configuration.NetworkConfig;
@@ -168,7 +167,6 @@ public class NetworkTablesManager {
             logger.info(msg);
             HardwareManager.getInstance().setNTConnected(true);
 
-            getInstance().broadcastVersion();
             getInstance().broadcastConnectedStatus();
 
             m_timeSync.reportNtConnected();
@@ -203,11 +201,6 @@ public class NetworkTablesManager {
         map.put("ntConnectionInfo", subMap);
         DataChangeService.getInstance()
                 .publishEvent(new OutgoingUIEvent<>("networkTablesConnected", map));
-    }
-
-    private void broadcastVersion() {
-        kRootTable.getEntry("version").setString(PhotonVersion.versionString);
-        kRootTable.getEntry("buildDate").setString(PhotonVersion.buildDate);
     }
 
     /**
@@ -316,7 +309,6 @@ public class NetworkTablesManager {
 
         m_timeSync.setConfig(config);
 
-        broadcastVersion();
     }
 
     public long getOffset() {
@@ -339,14 +331,12 @@ public class NetworkTablesManager {
             ntInstance.setServer(config.ntServerAddress);
         }
         ntInstance.startDSClient();
-        broadcastVersion();
     }
 
     private void setServerMode() {
         logger.info("Starting NT Server");
         ntInstance.stopClient();
         ntInstance.startServer();
-        broadcastVersion();
     }
 
     public long getTimeSinceLastPong() {

@@ -34,7 +34,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.RobotController;
@@ -73,9 +72,6 @@ public class PhotonCameraSim implements AutoCloseable {
     @SuppressWarnings("doclint")
     protected NTTopicSet ts = new NTTopicSet();
 
-    private DoubleArrayPublisher cameraIntrinsicsPublisher;
-    private DoubleArrayPublisher cameraDistortionPublisher;
-
     private long heartbeatCounter = 1;
 
     /** This simulated camera's {@link SimCameraProperties} */
@@ -110,8 +106,6 @@ public class PhotonCameraSim implements AutoCloseable {
         videoSimFrameRaw.release();
         videoSimProcessed.close();
         videoSimFrameProcessed.release();
-        if (cameraIntrinsicsPublisher != null) cameraIntrinsicsPublisher.close();
-        if (cameraDistortionPublisher != null) cameraDistortionPublisher.close();
     }
 
     /**
@@ -169,12 +163,6 @@ public class PhotonCameraSim implements AutoCloseable {
         ts.subTable = camera.getCameraTable();
         ts.updateEntries();
 
-        if (cameraIntrinsicsPublisher != null) cameraIntrinsicsPublisher.close();
-        if (cameraDistortionPublisher != null) cameraDistortionPublisher.close();
-        cameraIntrinsicsPublisher =
-                ts.subTable.getDoubleArrayTopic("cameraIntrinsics").publish();
-        cameraDistortionPublisher =
-                ts.subTable.getDoubleArrayTopic("cameraDistortion").publish();
     }
 
     /**
@@ -709,9 +697,6 @@ public class PhotonCameraSim implements AutoCloseable {
             var transform = bestTarget.getBestCameraToTarget();
             ts.targetPoseEntry.set(transform, receiveTimestamp);
         }
-
-        cameraIntrinsicsPublisher.set(prop.getIntrinsics().getData(), receiveTimestamp);
-        cameraDistortionPublisher.set(prop.getDistCoeffs().getData(), receiveTimestamp);
 
         ts.heartbeatPublisher.set(heartbeatCounter, receiveTimestamp);
         heartbeatCounter += 1;

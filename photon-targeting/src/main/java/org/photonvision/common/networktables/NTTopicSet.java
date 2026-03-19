@@ -23,7 +23,6 @@ import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.IntegerTopic;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.ProtobufPublisher;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StructPublisher;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -41,7 +40,6 @@ public class NTTopicSet {
     public NetworkTable subTable;
 
     public PacketPublisher<PhotonPipelineResult> resultPublisher;
-    public ProtobufPublisher<PhotonPipelineResult> protoResultPublisher;
 
     public DoublePublisher latencyMillisEntry;
     public DoublePublisher fpsEntry;
@@ -72,10 +70,6 @@ public class NTTopicSet {
 
         resultPublisher =
                 new PacketPublisher<PhotonPipelineResult>(rawBytesEntry, PhotonPipelineResult.photonStruct);
-        protoResultPublisher =
-                subTable
-                        .getProtobufTopic("result_proto", PhotonPipelineResult.proto)
-                        .publish(PubSubOption.periodic(0.01), PubSubOption.sendAll(true));
 
         latencyMillisEntry = subTable.getDoubleTopic("latencyMillis").publish();
         fpsEntry = subTable.getDoubleTopic("fps").publish();
